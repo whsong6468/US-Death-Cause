@@ -1,0 +1,60 @@
+#Run in Microsoft SQL Server
+
+#Changing Column Types From smallint to int
+ALTER TABLE MonthlyDeath
+ALTER COLUMN Septicemia int;
+ALTER TABLE MonthlyDeath
+ALTER COLUMN Diabetes_Mellitus int;
+ALTER TABLE MonthlyDeath
+ALTER COLUMN other_diseases_of_respiratory_system int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN [nephritis,_nephrotic_syndrome,_and_nephrosis] int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN [symptoms,_signs,_and_abnormal_clinical_and_laboratory_findings,_not_elsewhere_classified] int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN motor_vehicle_accidents int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN [intentional_self-harm_(suicide)] int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN [assault_(homicide)] int; 
+ALTER TABLE MonthlyDeath
+ALTER COLUMN drug_overdose int;
+
+#Adding new columns that combine Year and Month to Date
+ALTER TABLE MonthlyDeath ADD issue_date date;
+
+UPDATE MonthlyDeath
+SET issue_date = CONCAT(year, '-', month, '-', '01');
+
+#We can see that the data types do not unite.
+#In order to unpivot, it needs to be all same column type
+SELECT column_name, DATA_TYPE
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE table_name = 'MonthlyDeath'
+
+
+#Unpivot main query
+SELECT issue_date as DATE, Types, Counts  
+FROM   
+   (SELECT issue_date, All_Cause, Natural_Cause, Septicemia, 
+    Malignant_Neoplasms, Diabetes_Mellitus,
+    alzheimer_disease, influenza_and_pneumonia, chronic_lower_respiratory_diseases,
+    other_diseases_of_respiratory_system, [nephritis,_nephrotic_syndrome,_and_nephrosis],
+    [symptoms,_signs,_and_abnormal_clinical_and_laboratory_findings,_not_elsewhere_classified],
+    diseases_of_heart, cerebrovascular_diseases, [accidents_(unintentional_injuries)],
+    motor_vehicle_accidents, [intentional_self-harm_(suicide)], [assault_(homicide)],
+    drug_overdose   
+   FROM MonthlyDeath) p 
+UNPIVOT  
+   (Counts FOR Types IN   
+      (All_Cause, Natural_Cause, Septicemia, Malignant_Neoplasms, Diabetes_Mellitus,
+    alzheimer_disease, influenza_and_pneumonia, chronic_lower_respiratory_diseases,
+    other_diseases_of_respiratory_system, [nephritis,_nephrotic_syndrome,_and_nephrosis],
+    [symptoms,_signs,_and_abnormal_clinical_and_laboratory_findings,_not_elsewhere_classified],
+    diseases_of_heart, cerebrovascular_diseases, [accidents_(unintentional_injuries)],
+    motor_vehicle_accidents, [intentional_self-harm_(suicide)], [assault_(homicide)],
+    drug_overdose)  
+)AS unpvt
+
+  
+  
